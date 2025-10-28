@@ -109,6 +109,26 @@ entry:
   ret i1 %cmp
 }
 
+define i1 @fold_select_with_ptr_and_null(ptr %arg0) {
+; CHECK-LABEL: define i1 @fold_select_with_ptr_and_null
+; CHECK-SAME: (ptr [[ARG0:%.*]]) {
+; CHECK-NEXT:  entry:
+; CHECK-NEXT:    [[V0:%.*]] = getelementptr inbounds nuw i8, ptr [[ARG0]], i64 8
+; CHECK-NEXT:    [[V1:%.*]] = load i8, ptr [[V0]], align 8
+; CHECK-NEXT:    [[V2:%.*]] = icmp ne i8 [[V1]], 4
+; CHECK-NEXT:    [[V41:%.*]] = icmp eq ptr [[ARG0]], null
+; CHECK-NEXT:    [[V4:%.*]] = or i1 [[V2]], [[V41]]
+; CHECK-NEXT:    ret i1 [[V4]]
+;
+entry:
+  %v0 = getelementptr inbounds nuw i8, ptr %arg0, i64 8
+  %v1 = load i8, ptr %v0, align 8
+  %v2 = icmp eq i8 %v1, 4
+  %v3 = select i1 %v2, ptr %arg0, ptr null
+  %v4 = icmp eq ptr %v3, null
+  ret i1 %v4
+}
+
 define i1 @one_select_mult_use(i32 %val1, i32 %val2, i32 %param, i1 %cond) {
 ; CHECK-LABEL: define i1 @one_select_mult_use
 ; CHECK-SAME: (i32 [[VAL1:%.*]], i32 [[VAL2:%.*]], i32 [[PARAM:%.*]], i1 [[COND:%.*]]) {

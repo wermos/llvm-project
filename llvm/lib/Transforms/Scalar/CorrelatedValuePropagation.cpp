@@ -326,10 +326,20 @@ static bool processICmp(ICmpInst *Cmp, LazyValueInfo *LVI) {
 static bool constantFoldCmp(CmpInst *Cmp, LazyValueInfo *LVI) {
   Value *Op0 = Cmp->getOperand(0);
   Value *Op1 = Cmp->getOperand(1);
+
+  dbgs() << "Op0 = " << *Op0 << "\nOp1 = " << *Op1 << '\n';
+  dbgs() << "Cmp = " << *Cmp << '\n';
   Constant *Res = LVI->getPredicateAt(Cmp->getPredicate(), Op0, Op1, Cmp,
                                       /*UseBlockValue=*/true);
-  if (!Res)
-    return false;
+
+  dbgs() << "Res = " << Res << '\n';
+  if (!Res) {
+    dbgs() << "Entered inside if. Cmp->getOperand(0) = " << *Cmp->getOperand(0) << '\n';
+    Constant *Res2 = LVI->getPredicateAt(Cmp->getPredicate(), Op0, Op1, dyn_cast<Instruction>(Cmp->getOperand(0)),
+                                        /*UseBlockValue=*/true);
+    if (!Res2)
+      return false;
+  }
 
   ++NumCmps;
   Cmp->replaceAllUsesWith(Res);

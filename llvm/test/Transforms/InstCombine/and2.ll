@@ -286,6 +286,23 @@ define i32 @test14(i32 %a, i32 %b) {
   ret i32 %w
 }
 
+define i1 @non_canonical_logical_and(i1 %cond, i32 %y) {
+; CHECK-LABEL: @src(
+; CHECK-NEXT:  entry:
+; CHECK-NEXT:    [[CMP1:%.*]] = icmp samesign ugt i32 [[Y:%.*]], 65535
+; CHECK-NEXT:    [[SEL11:%.*]] = and i1 [[COND:%.*]], [[CMP1]]
+; CHECK-NEXT:    [[CMP2:%.*]] = icmp samesign ult i32 [[Y]], 1114112
+; CHECK-NEXT:    [[SEL2:%.*]] = select i1 [[SEL11]], i1 [[CMP2]], i1 false
+; CHECK-NEXT:    ret i1 [[SEL2]]
+;
+entry:
+  %cmp1 = icmp samesign ugt i32 %y, 65535
+  %sel11 = and i1 %cond, %cmp1
+  %cmp2 = icmp samesign ult i32 %y, 1114112
+  %sel2 = select i1 %sel11, i1 %cmp2, i1 false
+  ret i1 %sel2
+}
+
 !0 = !{!"function_entry_count", i64 1000}
 !1 = !{!"branch_weights", i32 2, i32 3}
 !2 = !{!"branch_weights", i32 5, i32 7}
